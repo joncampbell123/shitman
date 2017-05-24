@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-rel=../..
+rel=doslib
 if [ x"$TOP" == x ]; then TOP=`pwd`/$rel; fi
 . $rel/linux-ow.sh
 

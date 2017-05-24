@@ -8,19 +8,19 @@ if "%1" == "clean" call clean.bat
 if "%1" == "clean" goto end
 
 mkdir dos86c
-wmake -h -e -f ..\..\mak\dos86c.mak HPS=\ all REL=..\.. 
+wmake -h -e -f doslib\mak\dos86c.mak HPS=\ all REL=doslib 
 
 mkdir dos86l
-wmake -h -e -f ..\..\mak\dos86l.mak HPS=\ all REL=..\.. 
+wmake -h -e -f doslib\mak\dos86l.mak HPS=\ all REL=doslib 
 
 mkdir dos86m
-wmake -h -e -f ..\..\mak\dos86m.mak HPS=\ all REL=..\.. 
+wmake -h -e -f doslib\mak\dos86m.mak HPS=\ all REL=doslib 
 
 mkdir dos86s
-wmake -h -e -f ..\..\mak\dos86s.mak HPS=\ all REL=..\.. 
+wmake -h -e -f doslib\mak\dos86s.mak HPS=\ all REL=doslib 
 
 mkdir dos386f
-wmake -h -e -f ..\..\mak\dos386f.mak HPS=\ all REL=..\.. 
+wmake -h -e -f doslib\mak\dos386f.mak HPS=\ all REL=doslib 
 
 
 :end

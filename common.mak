@@ -6,7 +6,7 @@
 # this makefile is included from all the dos*.mak files, do not use directly
 # NTS: HPS is either \ (DOS) or / (Linux)
 
-CFLAGS_THIS = -fr=nul -fo=$(SUBDIR)$(HPS).obj -i=.. -i..$(HPS)..
+CFLAGS_THIS = -fr=nul -fo=$(SUBDIR)$(HPS).obj -idoslib
 NOW_BUILDING = GAMES_SHITMAN
 
 OBJS =        $(SUBDIR)$(HPS)shitman.obj
@@ -42,7 +42,7 @@ $(SHITMAN_EXE): $(HW_CPU_LIB) $(HW_CPU_LIB_DEPENDENCIES) $(HW_DOS_LIB) $(HW_DOS_
 	%write tmp.cmd option map=$(SHITMAN_EXE).map
 	%write tmp.cmd name $(SHITMAN_EXE)
 	@wlink @tmp.cmd
-	@$(COPY) ..$(HPS)..$(HPS)dos32a.dat $(SUBDIR)$(HPS)dos4gw.exe
+	@$(COPY) doslib$(HPS)dos32a.dat $(SUBDIR)$(HPS)dos4gw.exe
 !endif
 
 clean: .SYMBOLIC
