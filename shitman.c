@@ -705,8 +705,16 @@ void do_async_irq_vpan(void) {
     async_event_vpan_index = ~0U;
 }
 
+/*DEBUG*/
+//#define DEBUG_PALETTE_TICK_FLASH 1
+
 void interrupt timer_irq(void) {
     uint16_t padd;
+
+#ifdef DEBUG_PALETTE_TICK_FLASH /*DEBUG*/
+    vga_palette_lseek(0);
+    vga_palette_write(63,63,63);
+#endif
 
     /* count ticks */
     timer_irq0_ticks++;
@@ -750,6 +758,11 @@ async_end:
         do_async_irq_pal();
     if (async_event_vpan_index != ~0U)
         do_async_irq_vpan();
+
+#ifdef DEBUG_PALETTE_TICK_FLASH /*DEBUG*/
+    vga_palette_lseek(0);
+    vga_palette_write(0,0,0);
+#endif
 
     /* chain at 18.2Hz */
     padd = timer_irq0_chain_counter;
@@ -2751,6 +2764,7 @@ int main(int argc,char **argv) {
     initFonts();
     GifSlotInit();
     int10_setmode(0x13); /* 320x200x256-color */
+    blank_vga_palette();
     update_state_from_vga();
     vga_enable_256color_modex();
     modex_init();
