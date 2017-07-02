@@ -1,4 +1,7 @@
 
+/*DEBUG*/
+#define DEBUG_PALETTE_TICK_FLASH 1
+
 #include <stdio.h>
 #include <errno.h>
 #include <malloc.h>
@@ -704,9 +707,6 @@ void do_async_irq_vpan(void) {
     // done, cancel
     async_event_vpan_index = ~0U;
 }
-
-/*DEBUG*/
-#define DEBUG_PALETTE_TICK_FLASH 1
 
 static unsigned char timer_irq_bumped = 0;
 void interrupt timer_irq(void) {
