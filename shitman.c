@@ -718,7 +718,7 @@ void interrupt timer_irq(void) {
 #endif
 
     /* adjust the timer if needed */
-    if (!(inp(vga_state.vga_base_3x0 + 0xA) & 8)) {
+    if ((inp(vga_state.vga_base_3x0 + 0xA) & (8|1)) == 0) { /* retrace or blanking is OK */
         write_8254_system_timer(timer_irq0_chain_add+1);
         timer_irq_bumped = 1;
     }
