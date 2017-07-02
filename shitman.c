@@ -706,8 +706,9 @@ void do_async_irq_vpan(void) {
 }
 
 /*DEBUG*/
-//#define DEBUG_PALETTE_TICK_FLASH 1
+#define DEBUG_PALETTE_TICK_FLASH 1
 
+static unsigned char timer_irq_bumped = 0;
 void interrupt timer_irq(void) {
     uint16_t padd;
 
@@ -715,6 +716,16 @@ void interrupt timer_irq(void) {
     vga_palette_lseek(0);
     vga_palette_write(63,63,63);
 #endif
+
+    /* adjust the timer if needed */
+    if (!(inp(vga_state.vga_base_3x0 + 0xA) & 8)) {
+        write_8254_system_timer(timer_irq0_chain_add+1);
+        timer_irq_bumped = 1;
+    }
+    else if (timer_irq_bumped) {
+        write_8254_system_timer(timer_irq0_chain_add);
+        timer_irq_bumped = 0;
+    }
 
     /* count ticks */
     timer_irq0_ticks++;
@@ -1471,6 +1482,8 @@ void vga_refresh_rate_measure(void) {
     DEBUG("VGA measurement: %u frames, %lu ticks",
         frames,counter);
 
+    /* NTS: round down, so the error trends to causing the timer to tick too early.
+     *      then we can compensate by bumping the timer up momentarily */
     vga_refresh_timer_ticks = (uint16_t)(counter / (unsigned long)frames);
 
     DEBUG("VGA refresh rate: %u ticks (%.3ffps)",
