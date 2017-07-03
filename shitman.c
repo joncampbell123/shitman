@@ -1495,7 +1495,7 @@ void vga_refresh_rate_measure(void) {
 
     /* NTS: round down, so the error trends to causing the timer to tick too early.
      *      then we can compensate by bumping the timer up momentarily */
-    vga_refresh_timer_ticks = (uint16_t)((counter - 1UL) / (unsigned long)frames);
+    vga_refresh_timer_ticks = (uint16_t)((counter - 1) / (unsigned long)frames);
 
     DEBUG("VGA refresh rate: %u ticks (%.3ffps)",
         vga_refresh_timer_ticks,
@@ -1504,6 +1504,7 @@ void vga_refresh_rate_measure(void) {
 
 void timer_sync_to_vrefresh(void) {
     _cli();
+    timer_irq_bumped = 1;
     /* make the IRQ 0 timer count to zero and stop */
 	write_8254(T8254_TIMER_INTERRUPT_TICK,16,T8254_MODE_1_HARDWARE_RETRIGGERABLE_ONE_SHOT);
     /* wait for vsync */
@@ -1513,7 +1514,7 @@ void timer_sync_to_vrefresh(void) {
     /* NTS: Even then, some laptop displays seem to latch HPEL at vsync and our hpel panning gets jumpy
      *      until our timer interrupt drifts upward into the bottom-most active display scanline */
     /* start it again. */
-    write_8254_system_timer(timer_irq0_chain_add);
+    write_8254_system_timer((timer_irq0_chain_add * 90UL) / 100UL); /* try to make the first tick happen during bottom of active display */
     _sti();
 }
 
@@ -1659,7 +1660,6 @@ void TitleSequence(void) {
     halt_async();
     blank_vga_palette();
     modex_init();
-    timer_sync_to_vrefresh(); /* make sure the timer tick happens at vsync */
     xbitblt_setbltmode(BITBLT_BLOCK);
 
     /* we use flag slot 0 for title sequence steps. reset now */
@@ -2804,6 +2804,7 @@ int main(int argc,char **argv) {
     /* setup timer. we will use it for async video panning and later, music */
     timer_irq0_chain_add = vga_refresh_timer_ticks;
     setup_timer();
+    timer_sync_to_vrefresh(); /* make sure the timer tick happens at vsync */
 
     /* loop. start in title, drop to menu. */
     game_running_state_set(GAME_EXIT);
