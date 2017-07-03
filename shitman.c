@@ -524,6 +524,12 @@ typedef struct AsyncVPan {
     uint16_t    start;          // display offset (given directly to CRTC)
     uint16_t    end;            // stop panning here
     uint16_t    adjust;         // after panning, start += adjust. event ends when start == end
+    uint8_t     hpel_start;     // hpel
+    uint8_t     hpel_end;       // stop hpel here (when start == end)
+    uint8_t     hpel_adjust;    // hpel adjust. added to hpel. values beyond 2 bits are added to vram address.
+                                // set to zero for vert panning or instant change.
+                                // for horizontal panning, set adjust == 0 and hpel_adjust == 1 for left-to-right pan,
+                                // and adjust == 0xFFFF and hpel_adjust == 3 for right-to-left pan.
 } AsyncVPan;
 
 typedef struct AsyncSetFlag {
@@ -698,9 +704,14 @@ void do_async_irq_vpan(void) {
     // reprogram CRTC offset
     vga_set_start_location(ev->e.vpan.start);
 
-    // panning?
-    if (ev->e.vpan.start != ev->e.vpan.end) {
-        ev->e.vpan.start += ev->e.vpan.adjust;
+    // hpel (NTS: don't need to reset flip-flop, the timer IRQ read 0x3DA to reset it for us)
+    outp(0x3C0,0x13 | VGA_AC_ENABLE);
+    outp(0x3C0,ev->e.vpan.hpel_start * 2); /* hopefully becomes MOV AL,HPEL / ADD AL,AL */
+
+    // panning and hpel complete?
+    if (ev->e.vpan.start != ev->e.vpan.end || ev->e.vpan.hpel_start != ev->e.vpan.hpel_end) {
+        ev->e.vpan.start += ev->e.vpan.adjust + ((ev->e.vpan.hpel_start += ev->e.vpan.hpel_adjust) >> 2);
+        ev->e.vpan.hpel_start &= 3;
         return;
     }
 
@@ -1517,8 +1528,11 @@ void TitleSequenceAsyncScheduleSlide(unsigned char slot,uint16_t offset,uint8_t 
     ev = next_async();
     memset(ev,0,sizeof(*ev));
     ev->what = ASYNC_EVENT_VPAN;
-    ev->e.vpan.start = ev->e.vpan.end = offset;
-    ev->e.vpan.adjust = 0;
+    ev->e.vpan.start = offset;
+#if 1 /* DEBUG HPEL */
+    ev->e.vpan.end = offset + 60;
+    ev->e.vpan.hpel_adjust = 1;
+#endif
     next_async_finish();
 
     ev = next_async();
