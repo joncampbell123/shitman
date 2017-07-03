@@ -1529,7 +1529,8 @@ void TitleSequenceAsyncScheduleSlide(unsigned char slot,uint16_t offset,uint8_t 
     memset(ev,0,sizeof(*ev));
     ev->what = ASYNC_EVENT_VPAN;
     ev->e.vpan.start = offset;
-#if 1 /* DEBUG HPEL */
+    ev->e.vpan.end = offset;
+#if 0 /* DEBUG HPEL */
     ev->e.vpan.end = offset + 60;
     ev->e.vpan.hpel_adjust = 1;
 #endif
