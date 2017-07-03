@@ -1495,7 +1495,7 @@ void vga_refresh_rate_measure(void) {
 
     /* NTS: round down, so the error trends to causing the timer to tick too early.
      *      then we can compensate by bumping the timer up momentarily */
-    vga_refresh_timer_ticks = (uint16_t)(counter / (unsigned long)frames);
+    vga_refresh_timer_ticks = (uint16_t)((counter - 1UL) / (unsigned long)frames);
 
     DEBUG("VGA refresh rate: %u ticks (%.3ffps)",
         vga_refresh_timer_ticks,
@@ -1510,6 +1510,8 @@ void timer_sync_to_vrefresh(void) {
     vga_wait_for_vsync();
     vga_wait_for_vsync_end();
     vga_wait_for_vsync();
+    /* NTS: Even then, some laptop displays seem to latch HPEL at vsync and our hpel panning gets jumpy
+     *      until our timer interrupt drifts upward into the bottom-most active display scanline */
     /* start it again. */
     write_8254_system_timer(timer_irq0_chain_add);
     _sti();
